@@ -1,9 +1,12 @@
 let thunderAudio = [];
 
-// ra
 
 class LightningNode {
-   constructor(X1, Y1, strength, color, luck, splitDistance, root, prev) {
+   constructor(X1, Y1, strength, color, luck, splitDistance, root, curr, prev) {
+      this.index = curr
+      this.prev = prev
+      this.root = root
+      this.wasRoot = root
       this.X1 = X1
       this.Y1 = Y1
       this.X2 = X1
@@ -15,44 +18,48 @@ class LightningNode {
       this.child = false
       this.luck = Math.max(luck, 0)
       this.splitDistance = splitDistance + (Math.random() * 10 - 5)
-      this.root = root
-      this.wasRoot = root
       this.strength = (root === true ? 6 : 3)
-      this.index = stackActive.length
-      this.prev = prev
+
 
    }
 
 
    updateLoc = (len)=>{
-      // console.log(ground);
-      console.log(this.index, len);
       this.dist = this.distance(this.X1, this.Y1, this.X2, this.Y2)
       if (this.dist < this.splitDistance) {
          // Move
-         console.log(1);
+         if (stackActive[3]){
+            console.log(stackActive[2].prev);
+         }
          this.X2 += this.dx
          this.Y2 += this.dy
-      } else if (this.dist > this.splitDistance && this.child === false) {
-         // Make children
-         console.log(2);
+
+      }
+      else if (this.dist > this.splitDistance && this.child === false) {
+
          let temp = [],
-             rt = this.root
+             rt = this.root;
+
          for (let i = 0; i < this.luck; i++){
             if (i > 0){
                rt = false
             }
-            temp.push(new LightningNode(this.X2, this.Y2, this.strength, this.color, Math.floor(Math.random() * 3), this.splitDistance * .85, rt, this.index))
+            //                              (X1,      Y1,      strength,      color,                           luck,    splitDistance,       root,   curr, prev)
+            temp.push(new LightningNode(this.X2, this.Y2, this.strength, this.color, Math.floor(Math.random() * 3 + .2), this.splitDistance * .85 + 1, rt, stackActive.length + i, this.index))
+            // temp.push(new LightningNode(this.X2, this.Y2, this.strength, colors[Math.floor(Math.random()*cLen)], 1, this.splitDistance * .85 + 1, rt, stackActive.length + i, this.index))
+            // temp.push(new LightningNode(this.X2, this.Y2, this.strength, this.color, Math.floor(Math.random() * 3 + .2), this.splitDistance * .85, rt, this.index))
          }
+
          this.root = false
-         this.child = true;
-             return temp
-      } else if (this.root) {
-         console.log(3);
+         this.child = true
+
+            return temp
+      }
+      else if (this.root) {
          this.root = false
-         // this.children = false;
-         return [new LightningNode(this.X2, this.Y2, this.strength, this.color, 2, this.splitDistance * .85, true, this.index)]
-         // return [new LightningNode(this.X2, this.Y2, this.strength, 'this.color', 2, this.splitDistance * .85, true, this.index)]
+         //                            (X1,      Y1,      strength,      color,luck,    splitDistance,       root,       prev)
+         temp.push(new LightningNode(this.X2, this.Y2, this.strength, this.color, Math.floor(Math.random() * 3 + .2), this.splitDistance * .85 + 1, true, stackActive.length, this.index))
+         // return [new LightningNode(this.X2, this.Y2, this.strength, colors[Math.floor(Math.random()*cLen)], 2, this.splitDistance * .65 + 3, true, this.index)]
 
       } else {
 
@@ -75,21 +82,20 @@ class LightningNode {
       ctx.lineTo(this.X2, this.Y2)
       ctx.stroke()
       this.strength *= decay
+
+
       // GLOW
       ctx.beginPath()
+      ctx.fillStyle = `rgba(255, 255, 120, ${this.strength / 3})`
+      ctx.arc(this.X2, this.Y2, 2, 0, 2*Math.PI)
+      ctx.fill()
 
-      ctx.strokeStyle = "rgba(255, 255, 120,.05)"
-      // ctx.strokeStyle = "rgba(0, 15, 130,.05)"
-      ctx.rect(this.X1 -1, this.Y1 -1, 3, 3)
-      ctx.stroke()
 
       if (this.Y2 > height && ground == false){
          let t = thunderAudio.length
-            thunderAudio.push(new Audio('thunder_sound_effect.mp3'))
-            thunderAudio[t].play()
-            thunderAudio[t].addEventListener("ended", ()=>{
-               thunderAudio.shift()
-         })
+         thunderAudio.push(new Audio('thunder_sound_effect.mp3'))
+         thunderAudio[t].play()
+         thunderAudio[t].addEventListener("ended", ()=>{ thunderAudio.shift() })
          ground = true;
          let temp = [],
              temp2 = this.prev
